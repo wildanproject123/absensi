@@ -15,7 +15,7 @@
             --gold-light: #F9E498;
             --gold-dark: #996515;
             --midnight: #020617;
-            --card-bg: rgba(15, 23, 42, 0.7);
+            --card-bg: rgba(15, 23, 42, 0.75);
         }
         
         body { 
@@ -29,7 +29,6 @@
 
         .font-serif { font-family: 'Playfair Display', serif; }
         
-        /* Gold Gradients */
         .gold-gradient {
             background: linear-gradient(135deg, var(--gold-dark), var(--gold-primary), var(--gold-light));
         }
@@ -40,7 +39,6 @@
             -webkit-text-fill-color: transparent;
         }
 
-        /* Premium Glassmorphism */
         .premium-card {
             background: var(--card-bg);
             backdrop-filter: blur(20px);
@@ -49,7 +47,6 @@
             border-radius: 2rem;
         }
 
-        /* Exclusive Buttons */
         .btn-gold {
             background: linear-gradient(135deg, #996515, #D4AF37);
             color: #020617;
@@ -61,23 +58,11 @@
         }
 
         .btn-gold:hover {
-            transform: translateY(-3px) scale(1.02);
+            transform: translateY(-3px);
             box-shadow: 0 10px 25px rgba(212, 175, 55, 0.4);
             filter: brightness(1.1);
         }
 
-        .btn-outline-gold {
-            border: 1px solid var(--gold-primary);
-            color: var(--gold-primary);
-            transition: all 0.3s;
-        }
-
-        .btn-outline-gold:hover {
-            background: rgba(212, 175, 55, 0.1);
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
-        }
-
-        /* Tabs & Animations */
         .tab-active {
             background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), transparent);
             border-bottom: 2px solid var(--gold-primary);
@@ -90,16 +75,14 @@
         }
         .animate-content { animation: slideUp 0.5s ease-out forwards; }
 
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--gold-primary); border-radius: 10px; }
 
-        .ornament {
-            position: absolute;
-            width: 100px;
-            height: 100px;
-            border: 1px solid rgba(212, 175, 55, 0.1);
-            pointer-events: none;
+        /* Modal specific */
+        .modal-overlay {
+            background: rgba(2, 6, 23, 0.9);
+            backdrop-filter: blur(10px);
         }
     </style>
 </head>
@@ -108,19 +91,26 @@
     <div id="app"></div>
 
     <script>
-        // --- DATA STATE ---
+        // --- DATA STATE (With LocalStorage Fallback) ---
+        const INITIAL_USERS = [
+            { id: 'admin1', username: 'admin', password: '123', role: 'admin', name: 'Executive Administrator' },
+            { id: 'guru1', username: 'guru1', password: '123', role: 'guru', name: 'Budi Santoso, S.Pd', targetLat: -6.2088, targetLng: 106.8456, radius: 100 },
+            { id: 'guru2', username: 'guru2', password: '123', role: 'guru', name: 'Siti Aminah, M.Pd', targetLat: -6.1754, targetLng: 106.8272, radius: 100 }
+        ];
+
         let state = {
-            currentUser: null,
-            adminActiveTab: 'overview', // overview, activity, accounts
-            users: [
-                { id: 'admin1', username: 'admin', password: '123', role: 'admin', name: 'Executive Administrator' },
-                { id: 'guru1', username: 'guru1', password: '123', role: 'guru', name: 'Budi Santoso, S.Pd', targetLat: -6.2088, targetLng: 106.8456, radius: 100 },
-                { id: 'guru2', username: 'guru2', password: '123', role: 'guru', name: 'Siti Aminah, M.Pd', targetLat: -6.1754, targetLng: 106.8272, radius: 100 }
-            ],
-            attendance: [
-                { id: 1, userId: 'guru1', name: 'Budi Santoso, S.Pd', type: 'Hadir', time: '07:15', date: new Date().toLocaleDateString('id-ID'), note: '-' },
-            ]
+            currentUser: JSON.parse(localStorage.getItem('elite_user')) || null,
+            adminActiveTab: 'overview',
+            users: JSON.parse(localStorage.getItem('elite_users')) || INITIAL_USERS,
+            attendance: JSON.parse(localStorage.getItem('elite_attendance')) || []
         };
+
+        function saveState() {
+            localStorage.setItem('elite_users', JSON.stringify(state.users));
+            localStorage.setItem('elite_attendance', JSON.stringify(state.attendance));
+            if(state.currentUser) localStorage.setItem('elite_user', JSON.stringify(state.currentUser));
+            else localStorage.removeItem('elite_user');
+        }
 
         const app = document.getElementById('app');
 
@@ -137,187 +127,152 @@
 
         function notify(msg, type = 'success') {
             const toast = document.createElement('div');
-            toast.className = `fixed top-10 left-1/2 -translate-x-1/2 px-8 py-4 rounded-full shadow-2xl z-[999] text-xs font-black uppercase tracking-widest transition-all duration-500 animate-content border ${type === 'success' ? 'bg-slate-900/90 border-emerald-500/50 text-emerald-400' : 'bg-slate-900/90 border-rose-500/50 text-rose-400'}`;
+            toast.className = `fixed top-10 left-1/2 -translate-x-1/2 px-8 py-4 rounded-full shadow-2xl z-[1000] text-[10px] font-black uppercase tracking-widest transition-all duration-500 animate-content border ${type === 'success' ? 'bg-slate-900/95 border-emerald-500/50 text-emerald-400' : 'bg-slate-900/95 border-rose-500/50 text-rose-400'}`;
             toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-crown' : 'fa-shield-halved'} mr-3"></i> ${msg}`;
             document.body.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translate(-50%, -20px)'; setTimeout(() => toast.remove(), 500); }, 3000);
+            setTimeout(() => { 
+                toast.style.opacity = '0'; 
+                toast.style.transform = 'translate(-50%, -20px)'; 
+                setTimeout(() => toast.remove(), 500); 
+            }, 3000);
         }
 
-        function downloadPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            const today = new Date().toLocaleDateString('id-ID');
-            doc.setFont("playfair", "bold");
-            doc.setTextColor(153, 101, 21);
-            doc.text("SMP NEGERI 4 MONTA - EXCLUSIVE REPORT", 105, 20, { align: "center" });
-            const rows = state.attendance.filter(a => a.date === today).map((r, i) => [i + 1, r.name, r.type, r.time, r.note]);
-            doc.autoTable({ startY: 35, head: [['No', 'Nama Guru', 'Status', 'Waktu', 'Catatan']], body: rows, headStyles: { fillColor: [153, 101, 21] } });
-            doc.save(`Elite_Report_${today}.pdf`);
-            notify("Laporan Terenkripsi Berhasil Diunduh");
+        function logout() {
+            state.currentUser = null;
+            saveState();
+            renderLogin();
         }
 
-        // --- NAVIGATION ---
-        function setTab(tabName) {
-            state.adminActiveTab = tabName;
-            renderAdminDashboard();
+        // --- AUTH & NAVIGATION ---
+        function handleLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('username').value.trim().toLowerCase();
+            const p = document.getElementById('password').value;
+            const user = state.users.find(x => x.username.toLowerCase() === u && x.password === p);
+            
+            if (user) {
+                state.currentUser = user;
+                saveState();
+                renderDashboard();
+            } else {
+                notify('Akses Ditolak: Kredensial Ilegal', 'error');
+            }
         }
 
-        // --- VIEWS ---
-
+        // --- CORE VIEWS ---
         function renderLogin() {
             app.innerHTML = `
                 <div class="flex items-center justify-center min-h-screen p-6 relative">
-                    <div class="ornament top-0 left-0 border-t-2 border-l-2 border-gold-primary/20"></div>
-                    <div class="ornament bottom-0 right-0 border-b-2 border-r-2 border-gold-primary/20"></div>
-                    
-                    <div class="premium-card p-12 rounded-[3.5rem] w-full max-w-md border-t-2 border-t-gold-primary animate-content">
-                        <div class="text-center mb-12">
-                            <div class="inline-flex p-5 rounded-[2rem] bg-slate-900/80 border border-gold-primary/20 shadow-2xl mb-8 relative">
+                    <div class="premium-card p-10 md:p-14 w-full max-w-md border-t-2 border-t-gold-primary animate-content">
+                        <div class="text-center mb-10">
+                            <div class="inline-flex p-5 rounded-[2rem] bg-slate-900 border border-gold-primary/20 shadow-2xl mb-8">
                                 <i class="fas fa-crown text-5xl text-gold"></i>
-                                <div class="absolute -top-1 -right-1 flex h-4 w-4">
-                                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold-primary opacity-75"></span>
-                                  <span class="relative inline-flex rounded-full h-4 w-4 bg-gold-dark"></span>
-                                </div>
                             </div>
-                            <h1 class="text-5xl font-serif text-gold leading-none">SMPN 4</h1>
-                            <p class="text-slate-500 text-[10px] font-bold tracking-[0.4em] uppercase mt-3">Elite Attendance Management</p>
+                            <h1 class="text-4xl md:text-5xl font-serif text-gold leading-tight">SMPN 4 MONTA</h1>
+                            <p class="text-slate-500 text-[9px] font-bold tracking-[0.4em] uppercase mt-3">Elite Attendance Portal</p>
                         </div>
-                        <form id="loginForm" class="space-y-8">
-                            <div class="space-y-3">
-                                <label class="block text-[10px] font-black text-gold-primary uppercase tracking-[0.2em] ml-2">Secure Identification</label>
-                                <div class="relative group">
-                                    <i class="fas fa-fingerprint absolute left-5 top-1/2 -translate-y-1/2 text-gold-primary/40 group-focus-within:text-gold-primary transition-colors"></i>
-                                    <input type="text" id="username" class="w-full bg-slate-950/50 border border-gold-primary/10 pl-14 pr-6 py-5 rounded-2xl outline-none focus:border-gold-primary transition-all text-white placeholder:text-slate-700" placeholder="Username">
-                                </div>
+                        <form id="loginForm" class="space-y-6">
+                            <div class="space-y-2">
+                                <label class="text-[9px] font-black text-gold-primary uppercase tracking-[0.2em] ml-2">Secure ID</label>
+                                <input type="text" id="username" class="w-full bg-slate-950/50 border border-gold-primary/10 px-6 py-4 rounded-2xl outline-none focus:border-gold-primary text-white" placeholder="Username">
                             </div>
-                            <div class="space-y-3">
-                                <label class="block text-[10px] font-black text-gold-primary uppercase tracking-[0.2em] ml-2">Access Key</label>
-                                <div class="relative group">
-                                    <i class="fas fa-key absolute left-5 top-1/2 -translate-y-1/2 text-gold-primary/40 group-focus-within:text-gold-primary transition-colors"></i>
-                                    <input type="password" id="password" class="w-full bg-slate-950/50 border border-gold-primary/10 pl-14 pr-6 py-5 rounded-2xl outline-none focus:border-gold-primary transition-all text-white placeholder:text-slate-700" placeholder="••••••••">
-                                </div>
+                            <div class="space-y-2">
+                                <label class="text-[9px] font-black text-gold-primary uppercase tracking-[0.2em] ml-2">Access Key</label>
+                                <input type="password" id="password" class="w-full bg-slate-950/50 border border-gold-primary/10 px-6 py-4 rounded-2xl outline-none focus:border-gold-primary text-white" placeholder="••••••••">
                             </div>
-                            <button type="submit" class="btn-gold w-full py-6 rounded-2xl text-sm tracking-[0.2em] mt-6">
-                                Unlock System
-                            </button>
+                            <button type="submit" class="btn-gold w-full py-5 rounded-2xl text-xs tracking-[0.2em] mt-4">Unlock System</button>
                         </form>
                     </div>
                 </div>
             `;
-            document.getElementById('loginForm').onsubmit = (e) => {
-                e.preventDefault();
-                const u = document.getElementById('username').value.trim().toLowerCase();
-                const p = document.getElementById('password').value;
-                const user = state.users.find(x => x.username.toLowerCase() === u && x.password === p);
-                if (user) { state.currentUser = user; renderDashboard(); }
-                else { notify('Akses Ditolak: Kredensial Ilegal', 'error'); }
-            };
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
         }
 
+        function renderDashboard() {
+            if (!state.currentUser) return renderLogin();
+            if (state.currentUser.role === 'admin') renderAdminDashboard();
+            else renderGuruDashboard();
+        }
+
+        // --- ADMIN DASHBOARD ---
         function renderAdminDashboard() {
             const today = new Date().toLocaleDateString('id-ID');
             const logs = state.attendance.filter(a => a.date === today);
-            
-            app.innerHTML = `
-                <!-- Navigation Bar -->
-                <nav class="premium-card sticky top-0 z-[100] m-4 px-8 py-5 flex justify-between items-center border border-gold-primary/20 bg-slate-950/80 backdrop-blur-xl">
-                    <div class="flex items-center gap-4">
-                        <div class="h-10 w-10 gold-gradient rounded-xl flex items-center justify-center text-midnight">
-                            <i class="fas fa-gem"></i>
-                        </div>
-                        <h2 class="font-serif text-gold text-2xl hidden md:block">SMPN 4 MONTA</h2>
-                    </div>
-                    
-                    <div class="flex bg-slate-900/50 p-1.5 rounded-2xl border border-gold-primary/10">
-                        <button onclick="setTab('overview')" class="px-6 py-3 rounded-xl text-[10px] font-bold transition-all ${state.adminActiveTab === 'overview' ? 'tab-active' : 'text-slate-500'}">OVERVIEW</button>
-                        <button onclick="setTab('activity')" class="px-6 py-3 rounded-xl text-[10px] font-bold transition-all ${state.adminActiveTab === 'activity' ? 'tab-active' : 'text-slate-500'}">LIVE FEED</button>
-                        <button onclick="setTab('accounts')" class="px-6 py-3 rounded-xl text-[10px] font-bold transition-all ${state.adminActiveTab === 'accounts' ? 'tab-active' : 'text-slate-500'}">ACCOUNTS</button>
-                    </div>
 
-                    <button onclick="logout()" class="p-3 text-rose-400 hover:text-rose-300 transition-colors">
-                        <i class="fas fa-power-off"></i>
-                    </button>
+            app.innerHTML = `
+                <nav class="premium-card sticky top-4 z-[100] mx-4 my-6 px-6 py-4 flex justify-between items-center bg-slate-950/90">
+                    <div class="flex items-center gap-3">
+                        <div class="h-8 w-8 gold-gradient rounded-lg flex items-center justify-center text-midnight"><i class="fas fa-gem text-xs"></i></div>
+                        <h2 class="font-serif text-gold text-lg hidden sm:block">ADMIN PANEL</h2>
+                    </div>
+                    <div class="flex bg-slate-900/50 p-1 rounded-xl border border-gold-primary/10">
+                        <button onclick="state.adminActiveTab='overview'; renderAdminDashboard()" class="px-4 py-2 rounded-lg text-[9px] font-bold ${state.adminActiveTab === 'overview' ? 'tab-active' : 'text-slate-500'}">OVERVIEW</button>
+                        <button onclick="state.adminActiveTab='activity'; renderAdminDashboard()" class="px-4 py-2 rounded-lg text-[9px] font-bold ${state.adminActiveTab === 'activity' ? 'tab-active' : 'text-slate-500'}">FEED</button>
+                        <button onclick="state.adminActiveTab='accounts'; renderAdminDashboard()" class="px-4 py-2 rounded-lg text-[9px] font-bold ${state.adminActiveTab === 'accounts' ? 'tab-active' : 'text-slate-500'}">USERS</button>
+                    </div>
+                    <button onclick="logout()" class="text-rose-400 p-2"><i class="fas fa-power-off"></i></button>
                 </nav>
 
-                <main class="px-6 pb-12 max-w-7xl mx-auto space-y-10">
-                    
-                    ${state.adminActiveTab === 'overview' ? renderOverview(logs, today) : ''}
-                    ${state.adminActiveTab === 'activity' ? renderActivity(logs) : ''}
-                    ${state.adminActiveTab === 'accounts' ? renderAccountManagement() : ''}
-
+                <main class="px-6 pb-20 max-w-7xl mx-auto">
+                    ${state.adminActiveTab === 'overview' ? renderAdminOverview(logs, today) : ''}
+                    ${state.adminActiveTab === 'activity' ? renderAdminActivity(logs) : ''}
+                    ${state.adminActiveTab === 'accounts' ? renderAdminAccounts() : ''}
                 </main>
             `;
         }
 
-        function renderOverview(logs, today) {
+        function renderAdminOverview(logs, today) {
             return `
-                <div class="animate-content space-y-10">
-                    <div class="flex flex-col md:flex-row justify-between items-end gap-6">
+                <div class="animate-content space-y-8">
+                    <div class="flex flex-col sm:flex-row justify-between items-end gap-4">
                         <div>
-                            <h3 class="text-4xl font-serif text-white tracking-tight">Executive Intelligence</h3>
-                            <p class="text-gold-primary/60 text-[10px] font-black tracking-[0.3em] uppercase mt-2">Update: ${today}</p>
+                            <h3 class="text-3xl font-serif text-white">Mainframe Status</h3>
+                            <p class="text-gold-primary/60 text-[9px] font-black tracking-[0.2em] uppercase mt-1">Registry: ${today}</p>
                         </div>
-                        <button onclick="downloadPDF()" class="btn-gold px-10 py-5 rounded-2xl text-xs flex items-center gap-4 shadow-xl">
-                            <i class="fas fa-file-invoice"></i> Export Official Document
-                        </button>
+                        <button onclick="downloadPDF()" class="btn-gold px-6 py-4 rounded-xl text-[9px]">Export Report</button>
                     </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div class="premium-card p-10 relative overflow-hidden group hover:border-gold-primary/40 transition-all">
-                            <div class="absolute -right-8 -bottom-8 text-8xl text-gold-primary/5 group-hover:scale-110 transition-transform"><i class="fas fa-users"></i></div>
-                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Total Personnel</p>
-                            <h4 class="text-5xl font-bold text-white font-serif">${state.users.filter(u=>u.role==='guru').length}</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="premium-card p-8">
+                            <p class="text-[9px] text-slate-500 uppercase tracking-widest mb-2">Total Guru</p>
+                            <h4 class="text-4xl font-serif text-white">${state.users.filter(u=>u.role==='guru').length}</h4>
                         </div>
-                        <div class="premium-card p-10 relative overflow-hidden group border-l-4 border-l-emerald-500/30">
-                            <div class="absolute -right-8 -bottom-8 text-8xl text-emerald-500/5"><i class="fas fa-check-double"></i></div>
-                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Present Today</p>
-                            <h4 class="text-5xl font-bold text-emerald-400 font-serif">${logs.filter(l=>l.type==='Hadir').length}</h4>
+                        <div class="premium-card p-8 border-l-2 border-l-emerald-500/50">
+                            <p class="text-[9px] text-slate-500 uppercase tracking-widest mb-2">Hadir Hari Ini</p>
+                            <h4 class="text-4xl font-serif text-emerald-400">${logs.filter(l=>l.type==='Hadir').length}</h4>
                         </div>
-                        <div class="premium-card p-10 relative overflow-hidden group border-l-4 border-l-amber-500/30">
-                            <div class="absolute -right-8 -bottom-8 text-8xl text-amber-500/5"><i class="fas fa-clock"></i></div>
-                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Out of Office</p>
-                            <h4 class="text-5xl font-bold text-amber-400 font-serif">${logs.filter(l=>l.type!=='Hadir').length}</h4>
+                        <div class="premium-card p-8 border-l-2 border-l-amber-500/50">
+                            <p class="text-[9px] text-slate-500 uppercase tracking-widest mb-2">Izin/Sakit</p>
+                            <h4 class="text-4xl font-serif text-amber-400">${logs.filter(l=>l.type!=='Hadir').length}</h4>
                         </div>
                     </div>
                 </div>
             `;
         }
 
-        function renderActivity(logs) {
+        function renderAdminActivity(logs) {
             return `
-                <div class="animate-content space-y-8">
-                    <div class="text-center md:text-left">
-                        <h3 class="text-3xl font-serif text-gold">Live Activity Feed</h3>
-                        <p class="text-slate-500 text-[10px] font-bold tracking-[0.2em] uppercase mt-1">Real-time Personnel Monitoring</p>
-                    </div>
-                    
-                    <div class="premium-card rounded-[3rem] overflow-hidden border border-gold-primary/10">
+                <div class="animate-content space-y-6">
+                    <h3 class="text-2xl font-serif text-gold">Real-time Feed</h3>
+                    <div class="premium-card overflow-hidden">
                         <div class="overflow-x-auto custom-scrollbar">
                             <table class="w-full text-left">
-                                <thead class="bg-slate-950 text-gold-primary text-[10px] font-black uppercase tracking-[0.2em]">
+                                <thead class="bg-slate-950 text-gold-primary text-[9px] font-black uppercase">
                                     <tr>
-                                        <th class="px-10 py-7">Personnel Identity</th>
-                                        <th class="px-10 py-7">Status</th>
-                                        <th class="px-10 py-7">Timestamp</th>
-                                        <th class="px-10 py-7">Statement</th>
+                                        <th class="px-8 py-5">Personnel</th>
+                                        <th class="px-8 py-5">Status</th>
+                                        <th class="px-8 py-5">Time</th>
+                                        <th class="px-8 py-5">Note</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gold-primary/5">
-                                    ${logs.length ? logs.map(log => `
-                                        <tr class="hover:bg-gold-primary/5 transition-colors group">
-                                            <td class="px-10 py-7">
-                                                <p class="font-bold text-slate-100 group-hover:text-gold transition-colors">${log.name}</p>
-                                                <p class="text-[9px] text-slate-600 uppercase mt-1">ID: ${log.userId}</p>
-                                            </td>
-                                            <td class="px-10 py-7">
-                                                <span class="text-[9px] font-black px-4 py-1.5 rounded-full border ${log.type === 'Hadir' ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/5' : 'border-amber-500/30 text-amber-400 bg-amber-500/5'} uppercase tracking-widest">
-                                                    ${log.type}
-                                                </span>
-                                            </td>
-                                            <td class="px-10 py-7 text-slate-400 font-mono text-xs">${log.time}</td>
-                                            <td class="px-10 py-7 text-slate-500 text-xs italic font-light">${log.note}</td>
+                                <tbody class="divide-y divide-white/5 text-xs">
+                                    ${logs.length ? logs.map(l => `
+                                        <tr>
+                                            <td class="px-8 py-4 font-bold">${l.name}</td>
+                                            <td class="px-8 py-4"><span class="px-3 py-1 rounded-full border border-gold-primary/20 text-[9px]">${l.type}</span></td>
+                                            <td class="px-8 py-4 font-mono">${l.time}</td>
+                                            <td class="px-8 py-4 text-slate-400">${l.note}</td>
                                         </tr>
-                                    `).join('') : `<tr><td colspan="4" class="px-10 py-20 text-center text-slate-700 font-serif italic text-xl uppercase tracking-widest">No activity detected yet</td></tr>`}
+                                    `).join('') : `<tr><td colspan="4" class="p-20 text-center text-slate-600">No activity recorded today</td></tr>`}
                                 </tbody>
                             </table>
                         </div>
@@ -326,270 +281,219 @@
             `;
         }
 
-        function renderAccountManagement() {
+        function renderAdminAccounts() {
             return `
-                <div class="animate-content grid grid-cols-1 lg:grid-cols-5 gap-10">
-                    <div class="lg:col-span-2 space-y-8">
-                        <div>
-                            <h3 class="text-3xl font-serif text-gold">Account Creation</h3>
-                            <p class="text-slate-500 text-[10px] font-bold tracking-[0.2em] uppercase mt-1">Add New Personnel to Registry</p>
-                        </div>
-                        <div class="premium-card p-10">
-                            <form id="addUserForm" class="space-y-6">
-                                <div class="space-y-2">
-                                    <label class="text-[9px] font-black text-gold-primary uppercase tracking-widest ml-2">Full Name & Title</label>
-                                    <input type="text" id="newName" class="w-full bg-slate-950/50 border border-gold-primary/10 px-6 py-4 rounded-2xl text-sm outline-none focus:border-gold-primary text-white" placeholder="Ex: Prof. Dr. John Doe">
-                                </div>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div class="space-y-2">
-                                        <label class="text-[9px] font-black text-gold-primary uppercase tracking-widest ml-2">Username</label>
-                                        <input type="text" id="newUsername" class="w-full bg-slate-950/50 border border-gold-primary/10 px-6 py-4 rounded-2xl text-sm outline-none focus:border-gold-primary text-white" placeholder="User123">
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label class="text-[9px] font-black text-gold-primary uppercase tracking-widest ml-2">Secure Pass</label>
-                                        <input type="password" id="newPassword" class="w-full bg-slate-950/50 border border-gold-primary/10 px-6 py-4 rounded-2xl text-sm outline-none focus:border-gold-primary text-white" placeholder="••••">
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div class="space-y-2">
-                                        <label class="text-[9px] font-black text-gold-primary uppercase tracking-widest ml-2">GPS Latitude</label>
-                                        <input type="number" step="any" id="newLat" class="w-full bg-slate-950/50 border border-gold-primary/10 px-6 py-4 rounded-2xl text-sm outline-none focus:border-gold-primary text-white" value="-6.2088">
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label class="text-[9px] font-black text-gold-primary uppercase tracking-widest ml-2">GPS Longitude</label>
-                                        <input type="number" step="any" id="newLng" class="w-full bg-slate-950/50 border border-gold-primary/10 px-6 py-4 rounded-2xl text-sm outline-none focus:border-gold-primary text-white" value="106.8456">
-                                    </div>
-                                </div>
-                                <button type="submit" class="btn-gold w-full py-5 rounded-2xl text-xs font-black shadow-xl mt-4">Registry Authorization</button>
-                            </form>
-                        </div>
-                    </div>
-
-                    <div class="lg:col-span-3 space-y-8">
-                        <div>
-                            <h3 class="text-3xl font-serif text-white">Personnel Registry</h3>
-                            <p class="text-slate-500 text-[10px] font-bold tracking-[0.2em] uppercase mt-1">Active Accounts in System</p>
-                        </div>
-                        <div class="premium-card overflow-hidden">
-                            <div class="overflow-y-auto max-h-[500px] custom-scrollbar">
-                                <div class="divide-y divide-gold-primary/5">
-                                    ${state.users.filter(u=>u.role==='guru').map(user => `
-                                        <div class="p-8 flex items-center justify-between group hover:bg-gold-primary/5 transition-all">
-                                            <div class="flex items-center gap-6">
-                                                <div class="h-14 w-14 rounded-2xl bg-slate-900 border border-gold-primary/20 flex items-center justify-center text-gold-primary group-hover:scale-110 transition-transform">
-                                                    <i class="fas fa-user-tie text-2xl"></i>
-                                                </div>
-                                                <div>
-                                                    <p class="font-bold text-slate-100">${user.name}</p>
-                                                    <p class="text-[9px] text-slate-600 font-bold uppercase tracking-widest mt-1">@${user.username} • PIN: ${user.password}</p>
-                                                </div>
-                                            </div>
-                                            <button onclick="deleteUser('${user.id}')" class="text-slate-800 hover:text-rose-500 transition-colors p-3">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
-                                        </div>
-                                    `).join('')}
-                                </div>
+                <div class="animate-content grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="premium-card p-8 h-fit">
+                        <h4 class="text-gold font-serif text-lg mb-6">Register New Personnel</h4>
+                        <form onsubmit="handleCreateUser(event)" class="space-y-4">
+                            <input type="text" id="newName" placeholder="Nama Lengkap" class="w-full bg-slate-900 border border-white/10 p-4 rounded-xl text-xs outline-none focus:border-gold-primary" required>
+                            <div class="grid grid-cols-2 gap-4">
+                                <input type="text" id="newUsername" placeholder="Username" class="bg-slate-900 border border-white/10 p-4 rounded-xl text-xs outline-none focus:border-gold-primary" required>
+                                <input type="password" id="newPassword" placeholder="Pin/Password" class="bg-slate-900 border border-white/10 p-4 rounded-xl text-xs outline-none focus:border-gold-primary" required>
                             </div>
+                            <button type="submit" class="btn-gold w-full py-4 rounded-xl text-[9px]">Authorize Account</button>
+                        </form>
+                    </div>
+                    <div class="premium-card p-8 h-[500px] overflow-y-auto custom-scrollbar">
+                        <h4 class="text-white font-serif text-lg mb-6">Account Registry</h4>
+                        <div class="space-y-4">
+                            ${state.users.filter(u=>u.role==='guru').map(u => `
+                                <div class="flex items-center justify-between p-4 bg-slate-900/50 rounded-xl border border-white/5">
+                                    <div>
+                                        <p class="text-xs font-bold">${u.name}</p>
+                                        <p class="text-[8px] text-slate-500 uppercase tracking-widest mt-1">@${u.username} • PIN: ${u.password}</p>
+                                    </div>
+                                    <button onclick="deleteUser('${u.id}')" class="text-rose-500/50 hover:text-rose-500"><i class="fas fa-trash-alt"></i></button>
+                                </div>
+                            `).join('')}
                         </div>
                     </div>
                 </div>
             `;
-            
-            setTimeout(() => {
-                const form = document.getElementById('addUserForm');
-                if (form) {
-                    form.onsubmit = (e) => {
-                        e.preventDefault();
-                        const newUser = {
-                            id: 'guru' + Date.now(),
-                            name: document.getElementById('newName').value,
-                            username: document.getElementById('newUsername').value,
-                            password: document.getElementById('newPassword').value,
-                            role: 'guru',
-                            targetLat: parseFloat(document.getElementById('newLat').value),
-                            targetLng: parseFloat(document.getElementById('newLng').value),
-                            radius: 100
-                        };
-                        state.users.push(newUser);
-                        notify('Account Personnel Berhasil Diarsipkan');
-                        renderAdminDashboard();
-                    };
-                }
-            }, 0);
+        }
+
+        function handleCreateUser(e) {
+            e.preventDefault();
+            const u = {
+                id: 'guru_' + Date.now(),
+                name: document.getElementById('newName').value,
+                username: document.getElementById('newUsername').value,
+                password: document.getElementById('newPassword').value,
+                role: 'guru',
+                targetLat: -6.2088,
+                targetLng: 106.8456,
+                radius: 100
+            };
+            state.users.push(u);
+            saveState();
+            notify('User Terdaftar');
+            renderAdminDashboard();
         }
 
         function deleteUser(id) {
             state.users = state.users.filter(u => u.id !== id);
-            notify('Account Dihapus Dari Sistem', 'error');
+            saveState();
+            notify('User Dihapus', 'error');
             renderAdminDashboard();
         }
 
-        // --- GURU DASHBOARD (SAME PREMIUM STYLE) ---
+        // --- GURU DASHBOARD ---
         function renderGuruDashboard() {
             const user = state.currentUser;
-            const myLogs = state.attendance.filter(a => a.userId === user.id);
             const today = new Date().toLocaleDateString('id-ID');
-            const hasDone = myLogs.some(l => l.date === today);
+            const hasChecked = state.attendance.some(a => a.userId === user.id && a.date === today);
+            const myLogs = state.attendance.filter(a => a.userId === user.id);
 
             app.innerHTML = `
-                <div class="min-h-screen pb-24 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-gold-primary/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2"></div>
-                    
-                    <nav class="premium-card m-4 px-8 py-6 flex justify-between items-center border border-gold-primary/10 sticky top-0 z-50 bg-slate-950/80 backdrop-blur-xl">
-                        <div class="flex items-center gap-5">
-                            <div class="h-14 w-14 gold-gradient rounded-2xl flex items-center justify-center text-midnight shadow-2xl">
-                                <i class="fas fa-user-check text-2xl"></i>
-                            </div>
+                <div class="p-6 max-w-lg mx-auto min-h-screen flex flex-col gap-8">
+                    <header class="flex justify-between items-center">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 gold-gradient rounded-2xl flex items-center justify-center text-midnight shadow-lg"><i class="fas fa-user-check"></i></div>
                             <div>
-                                <h2 class="font-serif text-white text-xl leading-none mb-2">${user.name}</h2>
-                                <div class="flex items-center gap-2">
-                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                    <p class="text-[9px] font-black text-gold-primary uppercase tracking-[0.3em]">Official Personnel</p>
-                                </div>
+                                <h2 class="text-lg font-bold">${user.name}</h2>
+                                <p class="text-[8px] text-gold-primary uppercase tracking-[0.2em] font-black">Official Personnel</p>
                             </div>
                         </div>
-                        <button onclick="logout()" class="h-12 w-12 rounded-xl flex items-center justify-center bg-slate-900 border border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition-all">
-                            <i class="fas fa-sign-out-alt"></i>
-                        </button>
-                    </nav>
+                        <button onclick="logout()" class="w-10 h-10 rounded-xl bg-slate-900 border border-white/10 text-rose-400"><i class="fas fa-sign-out-alt"></i></button>
+                    </header>
 
-                    <main class="p-6 max-w-lg mx-auto space-y-10 animate-content">
-                        <div class="premium-card p-12 rounded-[3.5rem] text-center space-y-10 relative overflow-hidden border border-gold-primary/20 shadow-inner">
+                    <section class="premium-card p-10 text-center animate-content">
+                        <div class="w-20 h-20 bg-slate-950 border border-gold-primary/20 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl">
+                            <i class="fas fa-location-dot text-3xl text-gold"></i>
+                        </div>
+                        <h3 class="text-2xl font-serif text-white mb-2">Presensi Digital</h3>
+                        <p class="text-[9px] text-slate-500 uppercase tracking-widest mb-10">Verification Zone: Main Building</p>
+
+                        ${!hasChecked ? `
                             <div class="space-y-4">
-                                <div class="w-28 h-28 bg-slate-950 border-2 border-gold-primary/20 rounded-[3rem] flex items-center justify-center mx-auto shadow-2xl relative">
-                                    <i class="fas fa-location-crosshairs text-5xl text-gold"></i>
-                                    <div class="absolute inset-0 border border-gold-primary/30 rounded-[3rem] animate-ping opacity-20"></div>
-                                </div>
-                                <h3 class="text-3xl font-serif text-white pt-4">Attendance Verification</h3>
-                                <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em]">Secure Zone: SMPN 4 MONTA</p>
-                            </div>
-
-                            ${!hasDone ? `
-                            <div class="space-y-5">
-                                <button id="btnHadir" onclick="processAbsensi('Hadir')" class="btn-gold w-full py-7 rounded-[2rem] text-lg flex items-center justify-center gap-4 group">
-                                    <i class="fas fa-fingerprint text-2xl group-hover:scale-110 transition-transform"></i>
-                                    <span>Verify Identity</span>
+                                <button onclick="processAbsensi('Hadir')" class="btn-gold w-full py-6 rounded-2xl text-[11px] flex items-center justify-center gap-3">
+                                    <i class="fas fa-fingerprint text-xl"></i> Verifikasi Kehadiran
                                 </button>
                                 <div class="grid grid-cols-2 gap-4">
-                                    <button onclick="showModal('Izin')" class="py-5 rounded-2xl bg-slate-900 border border-gold-primary/10 text-gold-primary font-black text-[10px] uppercase tracking-widest hover:border-gold-primary transition-all">Permit Statement</button>
-                                    <button onclick="showModal('Sakit')" class="py-5 rounded-2xl bg-slate-900 border border-gold-primary/10 text-gold-primary font-black text-[10px] uppercase tracking-widest hover:border-gold-primary transition-all">Medical Leave</button>
+                                    <button onclick="showAbsenModal('Izin')" class="py-4 bg-slate-900/50 border border-white/5 rounded-2xl text-[9px] font-bold text-slate-300">IZIN</button>
+                                    <button onclick="showAbsenModal('Sakit')" class="py-4 bg-slate-900/50 border border-white/5 rounded-2xl text-[9px] font-bold text-slate-300">SAKIT</button>
                                 </div>
                             </div>
-                            ` : `
-                            <div class="bg-emerald-500/5 border border-emerald-500/20 p-10 rounded-[2.5rem] space-y-4">
-                                <i class="fas fa-crown text-5xl text-gold mb-2"></i>
-                                <h4 class="text-emerald-400 font-serif text-2xl tracking-widest uppercase">Verified</h4>
-                                <p class="text-slate-500 text-[9px] font-bold uppercase tracking-widest">Presence recorded in mainframe server</p>
+                        ` : `
+                            <div class="bg-emerald-500/10 border border-emerald-500/20 p-8 rounded-3xl">
+                                <i class="fas fa-circle-check text-4xl text-emerald-400 mb-3"></i>
+                                <h4 class="text-emerald-400 font-serif text-lg uppercase tracking-widest">Verified</h4>
+                                <p class="text-[8px] text-slate-500 uppercase mt-2">Data berhasil dikirim ke server</p>
                             </div>
-                            `}
-                        </div>
+                        `}
+                    </section>
 
-                        <div class="space-y-6">
-                            <div class="flex items-center justify-between px-4">
-                                <p class="text-[10px] font-black text-gold-primary uppercase tracking-[0.3em]">Historical Records</p>
-                                <span class="h-px bg-gold-primary/20 flex-1 ml-6"></span>
-                            </div>
-                            <div class="space-y-4">
-                                ${myLogs.slice().reverse().map(log => `
-                                    <div class="premium-card p-6 rounded-[2rem] flex justify-between items-center group hover:bg-white/5 transition-all">
-                                        <div class="flex items-center gap-5">
-                                            <div class="h-12 w-12 bg-slate-950 rounded-2xl border border-gold-primary/10 flex items-center justify-center text-gold-primary group-hover:rotate-12 transition-transform">
-                                                <i class="fas fa-award"></i>
-                                            </div>
-                                            <div>
-                                                <p class="font-black text-slate-100 text-sm tracking-wide">${log.type}</p>
-                                                <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">${log.date} • ${log.time}</p>
-                                            </div>
-                                        </div>
-                                        <i class="fas fa-shield-halved text-gold-primary/20"></i>
+                    <section class="space-y-4">
+                        <p class="text-[9px] font-black text-gold-primary uppercase tracking-[0.3em] px-2">Recent Records</p>
+                        <div class="space-y-3">
+                            ${myLogs.slice(-5).reverse().map(l => `
+                                <div class="premium-card p-5 flex justify-between items-center text-xs">
+                                    <div>
+                                        <p class="font-bold">${l.date}</p>
+                                        <p class="text-[8px] text-slate-500 mt-1 uppercase">${l.type}</p>
                                     </div>
-                                `).join('') || '<div class="text-center py-16 text-slate-700 italic font-serif">Empty records...</div>'}
-                            </div>
+                                    <span class="font-mono text-[10px] bg-slate-900 px-3 py-1 rounded-lg border border-white/5">${l.time}</span>
+                                </div>
+                            `).join('')}
                         </div>
-                    </main>
-
-                    <div id="modalAbsen" class="fixed inset-0 bg-midnight/95 backdrop-blur-2xl hidden items-center justify-center p-8 z-[999]">
-                        <div class="premium-card w-full max-w-sm p-12 rounded-[4rem] space-y-10 animate-content relative border-2 border-gold-primary/30">
-                            <div class="text-center space-y-3">
-                                <h3 id="mTitle" class="text-3xl font-serif text-gold"></h3>
-                                <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em]">Official Statement Required</p>
-                            </div>
-                            <textarea id="mNote" class="w-full bg-slate-950/80 border border-gold-primary/10 p-8 rounded-[2.5rem] h-48 text-sm italic text-white focus:border-gold-primary outline-none transition-all" placeholder="State your reason here..."></textarea>
-                            <div class="space-y-4">
-                                <button id="mSubmit" class="btn-gold w-full py-6 rounded-2xl text-[10px] font-black shadow-2xl">Authorize Submission</button>
-                                <button onclick="closeModal()" class="w-full py-2 text-slate-600 text-[9px] font-black uppercase tracking-[0.4em] hover:text-gold transition-colors">Abort Process</button>
-                            </div>
-                        </div>
-                    </div>
+                    </section>
                 </div>
             `;
         }
 
-        function showModal(type) {
-            const m = document.getElementById('modalAbsen');
-            document.getElementById('mTitle').innerText = type;
-            m.classList.remove('hidden'); m.classList.add('flex');
-            document.getElementById('mSubmit').onclick = () => {
-                const note = document.getElementById('mNote').value.trim();
-                if(!note) return notify('Statement Mandatory', 'error');
-                saveAbsen(type, note);
-                closeModal();
-            };
-        }
-
-        function closeModal() {
-            document.getElementById('modalAbsen').classList.add('hidden');
-            document.getElementById('modalAbsen').classList.remove('flex');
-            document.getElementById('mNote').value = '';
-        }
-
-        async function processAbsensi(type) {
-            const btn = document.getElementById('btnHadir');
-            if (!navigator.geolocation) return notify('GPS Hardware Malfunction', 'error');
+        // --- ACTIONS ---
+        function processAbsensi(type, note = '-') {
+            const user = state.currentUser;
             
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-satellite fa-spin text-2xl"></i>';
-            
-            navigator.geolocation.getCurrentPosition((pos) => {
-                const dist = calculateDistance(pos.coords.latitude, pos.coords.longitude, state.currentUser.targetLat, state.currentUser.targetLng);
-                if (dist <= state.currentUser.radius) {
-                    saveAbsen('Hadir', '-');
-                    notify('Identity & Location Verified');
-                } else {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-fingerprint text-2xl"></i> <span>Verify Identity</span>';
-                    notify(`Security Violation: Out of Bounds (${Math.round(dist)}m)`, 'error');
-                }
-            }, (err) => {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-fingerprint text-2xl"></i> <span>Verify Identity</span>';
-                notify('Signal Interference: GPS Failed', 'error');
-            }, { enableHighAccuracy: true });
+            if (type === 'Hadir') {
+                notify('Mencari Sinyal Satelit...', 'success');
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    const dist = calculateDistance(pos.coords.latitude, pos.coords.longitude, user.targetLat, user.targetLng);
+                    if (dist > user.radius) {
+                        return notify('Radius Ilegal: Harap masuk ke area sekolah', 'error');
+                    }
+                    finalizeAbsen(type, note);
+                }, (err) => {
+                    notify('Akses Lokasi Dibutuhkan', 'error');
+                });
+            } else {
+                finalizeAbsen(type, note);
+            }
         }
 
-        function saveAbsen(type, note) {
+        function finalizeAbsen(type, note) {
             const now = new Date();
-            state.attendance.push({
+            const log = {
                 id: Date.now(),
                 userId: state.currentUser.id,
                 name: state.currentUser.name,
                 type: type,
-                time: now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0'),
+                time: now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
                 date: now.toLocaleDateString('id-ID'),
                 note: note
-            });
+            };
+            state.attendance.push(log);
+            saveState();
+            notify('Presensi Berhasil Diverifikasi');
             renderDashboard();
         }
 
-        function renderDashboard() {
-            if (!state.currentUser) return renderLogin();
-            state.currentUser.role === 'admin' ? renderAdminDashboard() : renderGuruDashboard();
+        function showAbsenModal(type) {
+            const overlay = document.createElement('div');
+            overlay.className = 'fixed inset-0 z-[1100] modal-overlay flex items-center justify-center p-6';
+            overlay.innerHTML = `
+                <div class="premium-card p-8 w-full max-w-sm border-t-2 border-t-gold-primary animate-content">
+                    <h3 class="text-xl font-serif text-gold mb-2">Formulir ${type}</h3>
+                    <p class="text-[9px] text-slate-500 uppercase tracking-widest mb-6">Harap berikan alasan yang valid</p>
+                    <textarea id="noteText" class="w-full bg-slate-900 border border-white/10 rounded-xl p-4 text-xs h-32 outline-none focus:border-gold-primary text-white" placeholder="Tulis alasan di sini..."></textarea>
+                    <div class="grid grid-cols-2 gap-4 mt-6">
+                        <button onclick="this.closest('.fixed').remove()" class="py-4 rounded-xl text-[9px] font-bold text-slate-500 border border-white/10">BATAL</button>
+                        <button id="confirmBtn" class="btn-gold py-4 rounded-xl text-[9px]">KIRIM DATA</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            document.getElementById('confirmBtn').onclick = () => {
+                const note = document.getElementById('noteText').value || 'Tanpa Keterangan';
+                processAbsensi(type, note);
+                overlay.remove();
+            };
         }
 
-        function logout() { state.currentUser = null; renderLogin(); }
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const today = new Date().toLocaleDateString('id-ID');
+            const data = state.attendance.filter(a => a.date === today);
 
-        window.onload = renderLogin;
+            doc.setFontSize(18);
+            doc.setTextColor(153, 101, 21);
+            doc.text("SMP NEGERI 4 MONTA - EXCLUSIVE REPORT", 105, 20, { align: "center" });
+            
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.text(`Generated on: ${today} • System: Elite v4.0`, 105, 28, { align: "center" });
+
+            const rows = data.map((r, i) => [i + 1, r.name, r.type, r.time, r.note]);
+            doc.autoTable({
+                startY: 40,
+                head: [['No', 'Personnel', 'Status', 'Timestamp', 'Statement']],
+                body: rows,
+                headStyles: { fillColor: [153, 101, 21], textColor: [255, 255, 255], fontStyle: 'bold' },
+                styles: { fontSize: 9 }
+            });
+
+            doc.save(`Elite_Report_${today}.pdf`);
+            notify("Laporan Terenkripsi Diunduh");
+        }
+
+        // --- INIT ---
+        window.onload = () => {
+            if (state.currentUser) renderDashboard();
+            else renderLogin();
+        };
+
     </script>
 </body>
 </html>
