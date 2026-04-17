@@ -48,7 +48,6 @@
     <div id="app-section" class="w-full max-w-7xl hidden">
         <div class="flex flex-col lg:flex-row gap-6">
             
-            <!-- Sidebar (Hanya untuk Admin) -->
             <div id="admin-sidebar" class="hidden lg:flex flex-col w-72 bg-slate-900 rounded-[2.5rem] p-8 text-white min-h-[600px]">
                 <h2 class="text-xl font-black mb-10 text-indigo-400">ADMIN PANEL</h2>
                 <nav class="space-y-3 flex-1">
@@ -62,7 +61,6 @@
                 </button>
             </div>
 
-            <!-- Main Content -->
             <div class="flex-1 space-y-6">
                 <header class="glass-card px-8 py-4 rounded-[2rem] flex items-center justify-between">
                     <div class="flex items-center gap-4">
@@ -78,7 +76,6 @@
                     </div>
                 </header>
 
-                <!-- SECTION: MONITOR -->
                 <div id="section-monitor" class="hidden space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="glass-card p-6 rounded-3xl bg-indigo-50 border-indigo-100">
@@ -117,7 +114,6 @@
                     </div>
                 </div>
 
-                <!-- SECTION: GURU FORM -->
                 <div id="section-guru" class="hidden max-w-xl mx-auto space-y-6 pb-10">
                     <div class="glass-card p-10 rounded-[3rem] text-center bg-indigo-600 text-white">
                         <p class="opacity-70 font-bold mb-1">Selamat Datang,</p>
@@ -141,14 +137,12 @@
                         <button type="submit" id="btn-absen" class="w-full bg-slate-900 text-white font-black py-5 rounded-[2rem] shadow-xl hover:bg-indigo-600 transition-all">Kirim Presensi</button>
                     </form>
                     
-                    <!-- Tombol Keluar untuk Guru -->
                     <button onclick="handleLogout()" class="w-full flex items-center justify-center gap-2 py-4 px-6 rounded-2xl text-rose-500 font-bold hover:bg-rose-50 transition-all">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                         Keluar dari Akun
                     </button>
                 </div>
 
-                <!-- SECTION: MANAGE -->
                 <div id="section-manage" class="hidden max-w-md mx-auto glass-card p-10 rounded-[3rem]">
                     <h3 class="text-xl font-black text-slate-800 mb-6 text-center uppercase">Registrasi Guru</h3>
                     <div class="space-y-4">
@@ -158,7 +152,6 @@
                     </div>
                 </div>
 
-                <!-- SECTION: ARCHIVE -->
                 <div id="section-archive" class="hidden glass-card rounded-[2.5rem] overflow-hidden h-[600px] flex flex-col">
                     <div class="p-4 bg-white border-b flex justify-between items-center">
                         <span class="font-bold text-sm text-slate-800">Google Sheets Archive</span>
@@ -178,13 +171,13 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase Initializations
         const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'presensi-guru-v2';
 
+        // Pastikan SCRIPT_URL menggunakan https
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwASTiI47TogYU3XdIFqjtq0MxZXle6ySkMarXBf6GUWKMewZPPGtkNIrDj51r_Xxum/exec";
 
         let session = {
@@ -214,8 +207,8 @@
                     await withRetry(() => signInAnonymously(auth));
                 }
             } catch (e) { 
-                console.error("Auth initialization failed", e);
-                showToast("Gagal menyambungkan ke database", "bg-rose-600");
+                console.error("Auth error:", e);
+                showToast("Koneksi Database Gagal", "bg-rose-600");
             }
         };
 
@@ -249,7 +242,13 @@
             btn.innerHTML = '<div class="loading-spinner"></div>';
 
             try {
-                const res = await fetch(`${SCRIPT_URL}?action=login&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`);
+                // Menggunakan fetch dengan mode cors explisit
+                const targetUrl = `${SCRIPT_URL}?action=login&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`;
+                
+                const res = await fetch(targetUrl);
+                
+                if (!res.ok) throw new Error("Server response not OK");
+                
                 const data = await res.json();
 
                 if(data.status === "success") {
@@ -259,10 +258,11 @@
                     localStorage.setItem('guru_pass', pass);
                     showApp();
                 } else {
-                    showMsg(data.message, "auth-msg");
+                    showMsg(data.message || "Login gagal", "auth-msg");
                 }
             } catch (e) {
-                showMsg("Gagal menghubungi server auth", "auth-msg");
+                console.error("Login Fetch Error:", e);
+                showMsg("Gagal terhubung ke server. Pastikan Web App Google Script sudah diset ke 'Anyone'.", "auth-msg");
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = "Masuk";
@@ -341,7 +341,7 @@
                 document.getElementById('stat-total').innerText = data.length;
             }, (err) => {
                 console.error("Firestore error:", err);
-                showToast("Gagal memuat data realtime", "bg-rose-500");
+                showToast("Gagal memuat data", "bg-rose-500");
             });
         }
 
@@ -349,7 +349,7 @@
             e.preventDefault();
             
             if (!userState) {
-                showToast("Sesi belum siap, mencoba menyambungkan ulang...", "bg-amber-500");
+                showToast("Menyambungkan ulang database...", "bg-amber-500");
                 await initAuth();
                 if (!userState) return;
             }
@@ -393,7 +393,7 @@
                 e.target.reset();
             } catch (err) {
                 console.error("Save Error:", err);
-                showToast(`Gagal: ${err.code || 'Izin ditolak'}`, "bg-rose-500");
+                showToast(`Error: ${err.code || 'Gagal mengirim'}`, "bg-rose-500");
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = "Kirim Presensi";
