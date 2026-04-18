@@ -3,370 +3,517 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Presensi & Manajemen Guru - Premium</title>
+    <title>Sistem Presensi SMPN 4 MONTA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     <style>
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            min-height: 100vh;
-            margin: 0;
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f0f2f5; min-height: 100vh; margin: 0; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid #e2e8f0; }
+        .admin-sidebar { background: #0f172a; }
+        .btn-primary { background: #4f46e5; transition: all 0.3s ease; }
+        .btn-primary:hover { background: #4338ca; transform: translateY(-1px); }
+        .pulse { animation: pulse-animation 2s infinite; }
+        @keyframes pulse-animation {
+            0% { box-shadow: 0 0 0 0px rgba(79, 70, 229, 0.4); }
+            100% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
         }
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.75);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
-        }
-        .admin-sidebar-link.active {
-            background: white;
-            color: #4f46e5;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-        }
-        .loading-spinner {
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #4f46e5;
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .hidden { display: none !important; }
-        
-        @media (max-width: 768px) {
-            .mobile-full { width: 100% !important; border-radius: 0 !important; min-height: 100vh; }
-        }
-
-        /* Iframe Styling */
-        .sheets-container {
-            width: 100%;
-            height: 600px;
-            border-radius: 1.5rem;
-            overflow: hidden;
-            border: 1px solid #e2e8f0;
-        }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="flex items-center justify-center p-0 md:p-4">
+<body class="p-0 md:p-4">
 
-    <!-- Auth Section -->
-    <div id="auth-section" class="w-full max-w-md p-6">
-        <div class="glass-panel p-8 md:p-10 rounded-[2.5rem] text-center">
+    <!-- LOGIN SECTION -->
+    <div id="auth-section" class="fixed inset-0 flex items-center justify-center bg-slate-100 z-[500] px-4">
+        <div class="glass-card p-8 md:p-12 rounded-[2.5rem] shadow-2xl w-full max-w-md text-center fade-in">
             <div class="mb-8">
-                <div class="w-20 h-20 bg-indigo-600 rounded-3xl mx-auto flex items-center justify-center shadow-xl shadow-indigo-200 mb-4">
-                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A10.003 10.003 0 0012 3c1.223 0 2.39.218 3.476.614m.879 1.514a10.003 10.003 0 011.082 5.878M9 6h.01M7 10h.01M13 6h.01M15 10h.01M11 14h.01M13 18h.01M7 14h.01M9 18h.01"></path></svg>
+                <div class="w-20 h-20 bg-indigo-600 rounded-3xl mx-auto flex items-center justify-center shadow-xl mb-4">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-7h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                 </div>
-                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Portal Presensi</h1>
-                <p class="text-slate-500 mt-2 font-medium">Masuk untuk melanjutkan</p>
+                <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">SMP NEGERI 4 MONTA</h1>
+                <p class="text-slate-500 mt-2 font-medium text-sm">Sistem Presensi Kehadiran Guru</p>
             </div>
-
-            <div class="space-y-4">
-                <input type="text" id="login-user" placeholder="Username" class="w-full px-6 py-4 bg-white/50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
-                <input type="password" id="login-pass" placeholder="Password" class="w-full px-6 py-4 bg-white/50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
-                <button id="btn-login" class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl hover:bg-indigo-600 transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2">
-                    Masuk
-                </button>
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="text-xs font-bold text-slate-400 uppercase ml-2 mb-1 block">Username</label>
+                    <input type="text" id="login-user" class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-medium">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-400 uppercase ml-2 mb-1 block">Password</label>
+                    <input type="password" id="login-pass" class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-medium">
+                </div>
+                <button onclick="handleLogin()" id="btn-login" class="w-full btn-primary text-white font-bold py-4 rounded-2xl shadow-lg mt-4">Masuk</button>
+                <div id="auth-msg" class="text-center text-xs font-bold text-rose-500 hidden pt-2 uppercase"></div>
             </div>
-            <div id="auth-msg" class="mt-4 text-sm font-semibold hidden"></div>
         </div>
     </div>
 
-    <!-- App Container -->
-    <div id="app-section" class="w-full max-w-7xl hidden animate-fade-in mobile-full">
-        <div class="glass-panel md:rounded-[3rem] overflow-hidden flex flex-col lg:flex-row min-h-[650px]">
+    <!-- MAIN APP SECTION -->
+    <div id="app-section" class="hidden max-w-7xl mx-auto">
+        <div class="flex flex-col lg:flex-row gap-6 min-h-[90vh]">
             
-            <!-- Sidebar -->
-            <div id="admin-sidebar" class="w-full lg:w-72 bg-slate-50/50 border-r border-slate-200/50 p-8 hidden flex-col">
-                <div class="mb-10">
-                    <h2 class="text-xl font-extrabold text-indigo-600">Admin Panel</h2>
-                    <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Manajemen Guru</p>
+            <!-- Sidebar (HANYA TAMPIL JIKA ADMIN) -->
+            <aside id="admin-sidebar" class="hidden lg:flex flex-col w-72 admin-sidebar rounded-[2.5rem] p-8 text-white shadow-2xl">
+                <div class="mb-10 text-center">
+                    <h2 class="text-lg font-black tracking-tighter leading-none">SMPN 4 MONTA</h2>
+                    <span class="text-[10px] text-indigo-400 font-bold uppercase tracking-[0.2em] mt-2 block">Panel Administrasi</span>
                 </div>
                 <nav class="space-y-2 flex-1">
-                    <button onclick="switchMode('monitor')" id="tab-monitor" class="admin-sidebar-link active w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold text-sm transition-all text-slate-400">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                        Monitoring
-                    </button>
-                    <button onclick="switchMode('manage')" id="tab-manage" class="admin-sidebar-link w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold text-sm transition-all text-slate-400 hover:text-slate-600">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
-                        Kelola Akun
-                    </button>
+                    <button onclick="switchMode('monitor')" id="tab-monitor" class="w-full text-left px-6 py-4 rounded-2xl font-bold text-sm bg-indigo-600 shadow-lg transition-all">Monitoring</button>
+                    <button onclick="switchMode('manage')" id="tab-manage" class="w-full text-left px-6 py-4 rounded-2xl font-bold text-sm hover:bg-slate-800 text-slate-400 transition-all">Daftar Guru</button>
+                    <button onclick="switchMode('archive')" id="tab-archive" class="w-full text-left px-6 py-4 rounded-2xl font-bold text-sm hover:bg-slate-800 text-slate-400 transition-all">Rekap Sheets</button>
                 </nav>
-                <button onclick="handleLogout()" class="mt-auto flex items-center gap-3 text-rose-500 font-bold text-sm hover:translate-x-1 transition-all">
-                    <span>Keluar</span>
-                </button>
-            </div>
+                <div class="mt-auto pt-6 border-t border-slate-800 space-y-4">
+                    <button onclick="exportToPDF()" class="w-full bg-rose-600/20 text-rose-400 border border-rose-600/30 font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-rose-600 hover:text-white transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Download PDF
+                    </button>
+                    <button onclick="handleLogout()" class="w-full text-slate-500 font-bold text-xs hover:text-white flex items-center justify-center gap-2">Keluar</button>
+                </div>
+            </aside>
 
-            <!-- Content Area -->
-            <div class="flex-1 flex flex-col">
-                <header class="px-8 py-6 border-b border-slate-100 flex items-center justify-between">
+            <!-- Main Content Area -->
+            <main class="flex-1 space-y-6">
+                <!-- Header Card -->
+                <header class="glass-card px-8 py-6 rounded-[2rem] flex flex-wrap items-center justify-between shadow-sm gap-4">
                     <div class="flex items-center gap-4">
-                        <div id="user-avatar" class="w-12 h-12 rounded-2xl bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">U</div>
+                        <div id="user-avatar" class="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-indigo-200">?</div>
                         <div>
-                            <h3 id="display-user" class="font-extrabold text-slate-800 leading-none">User</h3>
-                            <span id="role-badge" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Role</span>
+                            <h3 id="display-user" class="font-black text-slate-800 text-xl leading-none">Memuat...</h3>
+                            <span id="role-badge" class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mt-1 block">Guru Aktif</span>
+                        </div>
+                    </div>
+                    <div class="text-right flex items-center gap-6">
+                        <div class="hidden sm:block">
+                            <p id="live-clock" class="text-3xl font-black text-slate-900 leading-none">00:00:00</p>
+                            <p id="live-date" class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Sabtu, 18 April 2026</p>
                         </div>
                     </div>
                 </header>
 
-                <main class="p-6 md:p-8 overflow-y-auto max-h-[85vh]">
-                    
-                    <!-- ADMIN: Live Google Sheets Monitor -->
-                    <div id="section-admin-monitor" class="hidden space-y-6">
-                        <div class="flex justify-between items-end">
-                            <div>
-                                <h4 class="text-2xl font-black text-slate-800 tracking-tight">Monitoring Real-time</h4>
-                                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Data Langsung dari Google Sheets</p>
-                            </div>
-                            <a href="https://docs.google.com/spreadsheets/d/1F9KmOe4cKFCvIbCBuaP0gWTHjjD_2OZD_mJ_JdvHOlU/edit" target="_blank" class="text-[10px] font-black bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl hover:bg-indigo-100 transition-all uppercase tracking-widest">
-                                Buka Full Sheet
-                            </a>
+                <!-- SECTION: MONITORING (Admin) -->
+                <div id="section-monitor" class="hidden space-y-6 fade-in">
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="glass-card p-6 rounded-3xl bg-emerald-50 border-emerald-100">
+                            <p class="text-[10px] font-black text-emerald-600 uppercase mb-1">Hadir</p>
+                            <h4 id="stat-hadir" class="text-4xl font-black text-emerald-700">0</h4>
                         </div>
-
-                        <!-- Embedded Google Sheets -->
-                        <div class="sheets-container shadow-2xl shadow-indigo-100/50 bg-white">
-                            <iframe 
-                                src="https://docs.google.com/spreadsheets/d/e/2PACX-1vT1f6u9L_vA_k-QvUf6f0f6R-O7v0F1-X-Y-u-J-G-g-A-E-V-P-Z-T-U-X-V-P-Z-T-U/pubhtml?gid=117169048&amp;single=true&amp;widget=true&amp;headers=false" 
-                                class="w-full h-full border-none"
-                                loading="lazy">
-                            </iframe>
+                        <div class="glass-card p-6 rounded-3xl bg-amber-50 border-amber-100">
+                            <p class="text-[10px] font-black text-amber-600 uppercase mb-1">Izin</p>
+                            <h4 id="stat-izin" class="text-4xl font-black text-amber-700">0</h4>
                         </div>
-                        
-                        <div class="p-4 bg-amber-50 border border-amber-100 rounded-2xl flex items-start gap-3">
-                            <svg class="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            <p class="text-[11px] text-amber-700 font-medium leading-relaxed">
-                                <b>Info:</b> Tampilan di atas adalah pratinjau langsung. Jika data belum muncul setelah guru melakukan presensi, silakan tunggu beberapa detik atau klik tombol "Buka Full Sheet".
-                            </p>
+                        <div class="glass-card p-6 rounded-3xl bg-rose-50 border-rose-100">
+                            <p class="text-[10px] font-black text-rose-600 uppercase mb-1">Sakit</p>
+                            <h4 id="stat-sakit" class="text-4xl font-black text-rose-700">0</h4>
+                        </div>
+                        <div class="glass-card p-6 rounded-3xl bg-slate-100 border-slate-200">
+                            <p class="text-[10px] font-black text-slate-500 uppercase mb-1">Total</p>
+                            <h4 id="stat-total" class="text-4xl font-black text-slate-800">0</h4>
                         </div>
                     </div>
 
-                    <!-- ADMIN: Manage Accounts -->
-                    <div id="section-admin-manage" class="hidden">
-                        <!-- Konten kelola akun tetap sama -->
-                        <div class="max-w-md mx-auto bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm">
-                            <div class="text-center mb-8">
-                                <h3 class="text-2xl font-black text-slate-800">Registrasi Guru</h3>
-                                <p class="text-slate-400 text-sm font-medium">Buat kredensial akses baru</p>
-                            </div>
-                            <div class="space-y-4">
-                                <input type="text" id="reg-user" placeholder="Username / ID Guru" class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all font-bold">
-                                <input type="password" id="reg-pass" placeholder="Password Baru" class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all font-bold">
-                                <button onclick="createNewUser()" id="btn-create" class="w-full bg-slate-900 text-white font-black py-5 rounded-[2rem] shadow-xl hover:bg-indigo-600 transition-all active:scale-95">Simpan Data</button>
-                            </div>
+                    <div class="glass-card rounded-[2.5rem] overflow-hidden shadow-xl bg-white border-0">
+                        <div class="p-6 border-b flex justify-between items-center px-8 bg-slate-50/50">
+                            <h4 class="font-black text-slate-800 flex items-center gap-2 uppercase text-xs tracking-widest">
+                                <span class="w-2 h-2 bg-emerald-500 rounded-full pulse"></span>
+                                Aktivitas Kehadiran Realtime
+                            </h4>
+                            <input type="text" id="search-monitor" oninput="filterMonitor()" placeholder="Cari nama guru..." class="text-xs px-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                    <tr>
+                                        <th class="px-8 py-5">Waktu</th>
+                                        <th class="px-8 py-5">Nama Guru</th>
+                                        <th class="px-8 py-5 text-center">Status</th>
+                                        <th class="px-8 py-5">Keterangan</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="monitor-table-body" class="divide-y divide-slate-100 text-sm"></tbody>
+                            </table>
                         </div>
                     </div>
+                </div>
 
-                    <!-- GURU: Dashboard Absensi -->
-                    <div id="section-guru-absensi" class="hidden max-w-lg mx-auto space-y-8">
-                        <div class="text-center">
-                            <h3 class="text-3xl font-black text-slate-800 tracking-tight">Sesi: <span id="guru-name-greeting">Rekan</span></h3>
-                            <p class="text-indigo-600 font-bold text-xs uppercase tracking-[0.2em] mt-2">Kirim Presensi Digital</p>
+                <!-- SECTION: DASHBOARD GURU -->
+                <div id="section-guru" class="hidden space-y-6 fade-in pb-10">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Form Absen -->
+                        <div class="glass-card p-8 md:p-10 rounded-[3rem] shadow-xl">
+                            <h3 class="text-xl font-black text-slate-800 mb-6 uppercase tracking-tight">Formulir Presensi</h3>
+                            <form id="absensi-form" class="space-y-6">
+                                <div>
+                                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Status Kehadiran</label>
+                                    <div class="grid grid-cols-3 gap-3">
+                                        <label class="cursor-pointer group">
+                                            <input type="radio" name="status" value="Hadir" checked class="peer hidden">
+                                            <div class="py-4 border-2 border-slate-100 rounded-2xl text-center font-bold text-slate-400 peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-600 transition-all text-xs uppercase">Hadir</div>
+                                        </label>
+                                        <label class="cursor-pointer group">
+                                            <input type="radio" name="status" value="Izin" class="peer hidden">
+                                            <div class="py-4 border-2 border-slate-100 rounded-2xl text-center font-bold text-slate-400 peer-checked:border-amber-500 peer-checked:bg-amber-50 peer-checked:text-amber-500 transition-all text-xs uppercase">Izin</div>
+                                        </label>
+                                        <label class="cursor-pointer group">
+                                            <input type="radio" name="status" value="Sakit" class="peer hidden">
+                                            <div class="py-4 border-2 border-slate-100 rounded-2xl text-center font-bold text-slate-400 peer-checked:border-rose-500 peer-checked:bg-rose-50 peer-checked:text-rose-500 transition-all text-xs uppercase">Sakit</div>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Alasan / Catatan</label>
+                                    <textarea name="catatan" id="form-catatan" placeholder="Opsional (Wajib jika Izin/Sakit)..." class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none h-24 font-medium transition-all resize-none text-slate-700 focus:ring-2 focus:ring-indigo-500"></textarea>
+                                </div>
+                                <button type="submit" id="btn-absen" class="w-full btn-primary text-white font-black py-5 rounded-2xl shadow-xl flex items-center justify-center gap-3">
+                                    <span id="btn-text">Kirim Kehadiran</span>
+                                </button>
+                            </form>
                         </div>
 
-                        <div class="bg-indigo-600 rounded-[2.5rem] p-12 text-white text-center shadow-2xl shadow-indigo-200 relative overflow-hidden">
-                            <p id="live-clock" class="text-6xl font-black mb-1">00:00:00</p>
-                            <p class="text-[10px] font-black opacity-60 uppercase tracking-widest" id="live-date">--- --- ----</p>
-                        </div>
-
-                        <form id="absensi-form" class="space-y-6">
-                            <div class="grid grid-cols-2 gap-4">
-                                <label class="cursor-pointer">
-                                    <input type="radio" name="status" value="Hadir" checked class="peer hidden">
-                                    <div class="p-6 border-2 border-slate-100 rounded-2xl text-center font-bold text-slate-500 peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-600 transition-all">Hadir</div>
-                                </label>
-                                <label class="cursor-pointer">
-                                    <input type="radio" name="status" value="Izin" class="peer hidden">
-                                    <div class="p-6 border-2 border-slate-100 rounded-2xl text-center font-bold text-slate-500 peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-600 transition-all">Izin</div>
-                                </label>
+                        <!-- Riwayat Hari Ini -->
+                        <div class="glass-card p-8 md:p-10 rounded-[3rem] shadow-xl flex flex-col">
+                            <h3 class="text-xl font-black text-slate-800 mb-6 uppercase tracking-tight">Riwayat Hari Ini</h3>
+                            <div id="guru-history" class="space-y-3 overflow-y-auto max-h-[400px] flex-1">
+                                <p class="text-slate-400 text-sm italic py-10 text-center">Belum ada absen hari ini.</p>
                             </div>
-                            <textarea name="pesan" placeholder="Catatan tambahan (Opsional)..." class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all h-24 font-medium"></textarea>
-                            <button type="submit" id="btn-absensi" class="w-full bg-slate-900 text-white font-black py-5 rounded-[2rem] shadow-xl hover:bg-indigo-600 transition-all active:scale-95">Kirim Data Presensi</button>
-                        </form>
+                            <!-- Logout dipindah ke sini khusus untuk tampilan Guru agar tetap bisa keluar -->
+                            <button onclick="handleLogout()" class="mt-6 text-rose-500 font-bold text-sm hover:underline flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                                Keluar Akun
+                            </button>
+                        </div>
                     </div>
+                </div>
 
-                </main>
-            </div>
+                <!-- SECTION: MANAGE GURU (Admin) -->
+                <div id="section-manage" class="hidden max-w-md mx-auto glass-card p-10 rounded-[3rem] shadow-xl fade-in">
+                    <h3 class="text-xl font-black text-slate-800 mb-8 text-center uppercase tracking-widest">Registrasi Guru Baru</h3>
+                    <div class="space-y-4">
+                        <input type="text" id="reg-user" placeholder="Nama Lengkap / Username" class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-medium">
+                        <input type="password" id="reg-pass" placeholder="Password Akun" class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-medium">
+                        <button onclick="handleRegister()" class="w-full bg-slate-900 text-white font-black py-5 rounded-2xl shadow-lg hover:bg-black transition-all">Daftarkan Sekarang</button>
+                    </div>
+                </div>
+
+                <!-- SECTION: ARCHIVE SHEETS (Admin) -->
+                <div id="section-archive" class="hidden glass-card rounded-[2.5rem] overflow-hidden h-[650px] flex flex-col shadow-2xl border-0 fade-in">
+                    <div class="p-5 bg-white border-b flex justify-between items-center px-8">
+                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Google Sheets Database</span>
+                        <a href="#" id="sheets-link" target="_blank" class="text-[10px] font-black text-indigo-600 hover:underline">OPEN IN NEW TAB</a>
+                    </div>
+                    <iframe id="sheets-iframe" class="flex-1 w-full" src="about:blank"></iframe>
+                </div>
+
+            </main>
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 px-8 py-4 rounded-2xl shadow-2xl text-white font-bold text-sm hidden z-[100] transition-all"></div>
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 px-8 py-4 rounded-2xl text-white font-black text-sm hidden z-[600] shadow-2xl flex items-center gap-3 transition-all"></div>
 
-    <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwASTiI47TogYU3XdIFqjtq0MxZXle6ySkMarXBf6GUWKMewZPPGtkNIrDj51r_Xxum/exec"; 
-        
-        let session = {
-            username: localStorage.getItem('v2_user'),
-            role: localStorage.getItem('v2_role'),
-            password: localStorage.getItem('v2_pass')
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDzq3aqYZKNOv9JYDDt82xaOKARm-_uCEI",
+            authDomain: "absen-guru-29853.firebaseapp.com",
+            projectId: "absen-guru-29853",
+            storageBucket: "absen-guru-29853.firebasestorage.app",
+            messagingSenderId: "970880503737",
+            appId: "1:970880503737:web:47bca4754eb0cfb9caf068"
         };
 
-        document.addEventListener('DOMContentLoaded', () => {
-            initClock();
-            document.getElementById('btn-login').onclick = handleLogin;
-            if (session.username && session.role) showApp();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'presensi-guru-v2';
+        const publicCollectionPath = ['artifacts', appId, 'public', 'data', 'absensi'];
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwASTiI47TogYU3XdIFqjtq0MxZXle6ySkMarXBf6GUWKMewZPPGtkNIrDj51r_Xxum/exec";
+
+        let session = {
+            user: localStorage.getItem('guru_user'),
+            role: localStorage.getItem('guru_role'),
+            pass: localStorage.getItem('guru_pass')
+        };
+        let userState = null;
+        let monitorData = [];
+
+        // Auth Listener
+        onAuthStateChanged(auth, (user) => {
+            userState = user;
+            if (session.user && user) showApp();
         });
 
-        function initClock() {
-            setInterval(() => {
-                const clock = document.getElementById('live-clock');
-                const dateEl = document.getElementById('live-date');
-                const now = new Date();
-                if(clock) clock.innerText = now.toLocaleTimeString('id-ID', {hour12: false});
-                if(dateEl) dateEl.innerText = now.toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long'});
-            }, 1000);
-        }
+        const initAuth = async () => {
+            try { await signInAnonymously(auth); } catch (e) { console.error(e); }
+        };
+        initAuth();
 
-        async function handleLogin() {
+        // Clock logic
+        setInterval(() => {
+            const now = new Date();
+            const t = now.toLocaleTimeString('id-ID', { hour12: false });
+            const d = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            if(document.getElementById('live-clock')) document.getElementById('live-clock').innerText = t;
+            if(document.getElementById('live-date')) document.getElementById('live-date').innerText = d;
+        }, 1000);
+
+        window.handleLogin = async () => {
             const user = document.getElementById('login-user').value.trim();
             const pass = document.getElementById('login-pass').value.trim();
+            if(!user || !pass) return showToast("Lengkapi form!", "bg-rose-500");
+            
             const btn = document.getElementById('btn-login');
-
-            if (!user || !pass) return showAuthMsg("Username & Password wajib diisi", "text-rose-500");
-            btn.disabled = true;
-            btn.innerHTML = '<div class="loading-spinner"></div>';
-
+            btn.innerText = "Mengecek...";
+            
             try {
-                const response = await fetch(`${SCRIPT_URL}?action=login&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`);
-                const result = await response.json();
-                if (result.status === "success") {
-                    localStorage.setItem('v2_user', result.username);
-                    localStorage.setItem('v2_role', result.role);
-                    localStorage.setItem('v2_pass', pass);
-                    session = { username: result.username, role: result.role, password: pass };
+                const res = await fetch(`${SCRIPT_URL}?action=login&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`);
+                const data = await res.json();
+                if(data.status === "success") {
+                    session = { user: data.username, role: data.role, pass: pass };
+                    localStorage.setItem('guru_user', data.username);
+                    localStorage.setItem('guru_role', data.role);
+                    localStorage.setItem('guru_pass', pass);
                     showApp();
                 } else {
-                    showAuthMsg(result.message || "Gagal masuk", "text-rose-500");
+                    showToast("Login Gagal!", "bg-rose-500");
                 }
-            } catch (e) {
-                showAuthMsg("Koneksi bermasalah", "text-rose-500");
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = 'Masuk';
-            }
-        }
+            } catch (e) { showToast("Error Server!", "bg-rose-500"); }
+            finally { btn.innerText = "Masuk"; }
+        };
 
         function showApp() {
             document.getElementById('auth-section').classList.add('hidden');
             document.getElementById('app-section').classList.remove('hidden');
-            document.getElementById('display-user').innerText = session.username;
-            document.getElementById('role-badge').innerText = session.role;
-            document.getElementById('user-avatar').innerText = session.username.substring(0, 1).toUpperCase();
-
+            document.getElementById('display-user').innerText = session.user;
+            document.getElementById('role-badge').innerText = session.role === 'Admin' ? 'Administrator' : 'Guru Pengajar';
+            document.getElementById('user-avatar').innerText = (session.user[0] || '?').toUpperCase();
+            
             if (session.role === "Admin") {
-                document.getElementById('admin-sidebar').classList.remove('hidden');
-                document.getElementById('admin-sidebar').classList.add('flex');
+                // Tampilkan sidebar & monitor untuk Admin
+                document.getElementById('admin-sidebar').style.display = 'flex';
                 switchMode('monitor');
+                listenRealtime();
             } else {
-                document.getElementById('guru-name-greeting').innerText = session.username;
-                switchMode('absensi');
+                // Sembunyikan sidebar sepenuhnya untuk Guru
+                document.getElementById('admin-sidebar').style.display = 'none';
+                switchMode('guru');
+                listenGuruHistory();
             }
         }
 
-        function switchMode(mode) {
-            document.getElementById('section-admin-monitor').classList.add('hidden');
-            document.getElementById('section-admin-manage').classList.add('hidden');
-            document.getElementById('section-guru-absensi').classList.add('hidden');
-
-            if (mode === 'monitor') document.getElementById('section-admin-monitor').classList.remove('hidden');
-            else if (mode === 'manage') document.getElementById('section-admin-manage').classList.remove('hidden');
-            else if (mode === 'absensi') document.getElementById('section-guru-absensi').classList.remove('hidden');
-
+        window.switchMode = (mode) => {
+            const sections = ['monitor', 'manage', 'archive', 'guru'];
+            sections.forEach(s => {
+                const el = document.getElementById(`section-${s}`);
+                if(el) el.classList.add('hidden');
+            });
+            
+            const target = document.getElementById(`section-${mode}`);
+            if(target) target.classList.remove('hidden');
+            
+            if (mode === 'archive') {
+                const url = "https://docs.google.com/spreadsheets/d/1F9KmOe4cKFCvIbCBuaP0gWTHjjD_2OZD_mJ_JdvHOlU/preview";
+                document.getElementById('sheets-iframe').src = url;
+                document.getElementById('sheets-link').href = url.replace('/preview', '/edit');
+            }
+            
+            // Highlight tab sidebar jika Admin
             if (session.role === "Admin") {
-                document.querySelectorAll('.admin-sidebar-link').forEach(btn => {
-                    btn.classList.remove('active', 'bg-white', 'text-indigo-600');
-                    btn.classList.add('text-slate-400');
+                document.querySelectorAll('aside nav button').forEach(b => {
+                    b.className = "w-full text-left px-6 py-4 rounded-2xl font-bold text-sm hover:bg-slate-800 text-slate-400 transition-all";
                 });
-                const activeTab = document.getElementById('tab-' + mode);
-                if(activeTab) {
-                    activeTab.classList.add('active', 'bg-white', 'text-indigo-600');
-                    activeTab.classList.remove('text-slate-400');
-                }
+                const activeBtn = document.getElementById(`tab-${mode}`);
+                if(activeBtn) activeBtn.className = "w-full text-left px-6 py-4 rounded-2xl font-bold text-sm bg-indigo-600 shadow-lg transition-all";
             }
+        };
+
+        function listenRealtime() {
+            onSnapshot(collection(db, ...publicCollectionPath), (snap) => {
+                monitorData = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.ts_raw - a.ts_raw);
+                renderMonitorTable(monitorData);
+            }, (err) => console.error("Firestore Error:", err));
         }
 
-        async function createNewUser() {
-            const user = document.getElementById('reg-user').value.trim();
-            const pass = document.getElementById('reg-pass').value.trim();
-            const btn = document.getElementById('btn-create');
-            if (!user || !pass) return showToast("Lengkapi data registrasi", "bg-rose-500");
+        function renderMonitorTable(data) {
+            const tbody = document.getElementById('monitor-table-body');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            let h = 0, i = 0, s = 0;
+            
+            data.forEach(item => {
+                if(item.status === 'Hadir') h++;
+                else if(item.status === 'Izin') i++;
+                else if(item.status === 'Sakit') s++;
+                
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-8 py-5 text-[11px] font-bold text-slate-400 font-mono">${item.waktu || '--:--'}</td>
+                        <td class="px-8 py-5 font-black text-slate-800 uppercase">${item.nama}</td>
+                        <td class="px-8 py-5 text-center">
+                            <span class="px-4 py-1.5 rounded-xl text-[10px] font-black uppercase ${getStatusClass(item.status)}">${item.status}</span>
+                        </td>
+                        <td class="px-8 py-5 text-slate-500 italic text-xs">${item.catatan || '-'}</td>
+                    </tr>`;
+            });
+            
+            if(document.getElementById('stat-hadir')) document.getElementById('stat-hadir').innerText = h;
+            if(document.getElementById('stat-izin')) document.getElementById('stat-izin').innerText = i;
+            if(document.getElementById('stat-sakit')) document.getElementById('stat-sakit').innerText = s;
+            if(document.getElementById('stat-total')) document.getElementById('stat-total').innerText = data.length;
+        }
 
-            btn.disabled = true;
-            btn.innerText = 'Memproses...';
-
-            try {
-                const url = `${SCRIPT_URL}?action=createUser&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}&role=Guru&adminUser=${encodeURIComponent(session.username)}&adminPass=${encodeURIComponent(session.password)}`;
-                const response = await fetch(url);
-                const result = await response.json();
-                if (result.status === "success") {
-                    showToast("Registrasi berhasil!", "bg-emerald-600");
-                    document.getElementById('reg-user').value = '';
-                    document.getElementById('reg-pass').value = '';
-                } else {
-                    showToast(result.message, "bg-rose-500");
+        function listenGuruHistory() {
+            onSnapshot(collection(db, ...publicCollectionPath), (snap) => {
+                const data = snap.docs.map(d => d.data())
+                    .filter(d => d.nama === session.user)
+                    .sort((a,b) => b.ts_raw - a.ts_raw);
+                
+                const container = document.getElementById('guru-history');
+                if(!container) return;
+                
+                if(data.length === 0) {
+                    container.innerHTML = '<p class="text-slate-400 text-sm italic py-10 text-center">Belum ada absen hari ini.</p>';
+                    return;
                 }
-            } catch (e) {
-                showToast("Gangguan server", "bg-rose-500");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = 'Simpan Data';
-            }
+                
+                container.innerHTML = data.map(item => `
+                    <div class="p-5 border border-slate-100 rounded-3xl bg-slate-50/50 flex justify-between items-center">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${item.waktu}</p>
+                            <h4 class="font-black text-slate-800 uppercase text-sm">${item.status}</h4>
+                            <p class="text-xs text-slate-500 italic mt-1">${item.catatan || 'Tanpa keterangan'}</p>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center ${getStatusBg(item.status)}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                    </div>
+                `).join('');
+            });
         }
 
         document.getElementById('absensi-form').onsubmit = async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('btn-absensi');
-            btn.disabled = true;
-            btn.innerHTML = '<div class="loading-spinner mx-auto"></div>';
-
+            const btn = document.getElementById('btn-absen');
             const formData = new FormData(e.target);
             const status = formData.get('status');
-            const catatan = formData.get('pesan') || '-';
+            const catatan = formData.get('catatan').trim();
+            const now = new Date();
             
+            if((status === 'Izin' || status === 'Sakit') && !catatan) {
+                return showToast("Keterangan wajib diisi!", "bg-rose-500");
+            }
+
+            btn.disabled = true;
+            document.getElementById('btn-text').innerText = "Mengirim...";
+            
+            const datePart = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
+            const timePart = now.toLocaleTimeString('en-US', { hour12: false });
+            const fullStamp = `${datePart} ${timePart}`;
+            
+            const detailFormat = `Status: ${status} | Catatan: ${catatan || "-"}`;
+
             const payload = {
-                action: "saveData",
-                user: session.username,
+                nama: session.user,
                 role: session.role,
-                nama: session.username,
-                pesan: `Status: ${status} | Catatan: ${catatan}`,
-                timestamp: new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })
+                status: status,
+                catatan: catatan || "-",
+                waktu: now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':'),
+                full_stamp: fullStamp,
+                ts_raw: now.getTime(),
+                created_at: serverTimestamp()
             };
 
             try {
-                await fetch(SCRIPT_URL, {
+                await addDoc(collection(db, ...publicCollectionPath), payload);
+                
+                fetch(SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors', 
-                    body: JSON.stringify(payload)
+                    mode: 'no-cors',
+                    body: JSON.stringify({
+                        action: "saveData",
+                        timestamp: fullStamp,
+                        user: session.user,
+                        role: session.role,
+                        namaLagi: session.user,
+                        detail: detailFormat
+                    })
                 });
-                showToast("Presensi terkirim! Segarkan dashboard untuk melihat.", "bg-emerald-600");
+
+                showToast("Berhasil Terkirim!", "bg-indigo-600");
                 e.target.reset();
             } catch (err) {
-                showToast("Gagal mengirim", "bg-rose-500");
+                showToast("Gagal kirim data!", "bg-rose-500");
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = 'Kirim Data Presensi';
+                document.getElementById('btn-text').innerText = "Kirim Kehadiran";
             }
         };
 
-        function handleLogout() {
-            localStorage.clear();
-            location.reload();
+        window.exportToPDF = () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(18);
+            doc.text("SMP NEGERI 4 MONTA", 105, 15, { align: "center" });
+            doc.setFontSize(10);
+            doc.text("LAPORAN REKAPITULASI KEHADIRAN GURU", 105, 22, { align: "center" });
+            const rows = monitorData.map(item => [item.full_stamp || item.waktu, item.nama, item.status, item.catatan || "-"]);
+            doc.autoTable({
+                startY: 35,
+                head: [['Waktu', 'Nama Guru', 'Status', 'Keterangan']],
+                body: rows,
+                theme: 'grid',
+                headStyles: { fillColor: [79, 70, 229] }
+            });
+            doc.save(`Laporan_Presensi_SMPN4MONTA_${new Date().getTime()}.pdf`);
+        };
+
+        window.handleRegister = async () => {
+            const user = document.getElementById('reg-user').value.trim();
+            const pass = document.getElementById('reg-pass').value.trim();
+            if(!user || !pass) return showToast("Isi data guru!", "bg-rose-500");
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=createUser&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}&role=Guru&adminUser=${session.user}&adminPass=${session.pass}`);
+                const data = await res.json();
+                if(data.status === "success") {
+                    showToast("Guru Berhasil Didaftar!", "bg-emerald-600");
+                    document.getElementById('reg-user').value = '';
+                    document.getElementById('reg-pass').value = '';
+                } else showToast(data.message, "bg-rose-500");
+            } catch (e) { showToast("Gagal registrasi!", "bg-rose-500"); }
+        };
+
+        window.filterMonitor = () => {
+            const val = document.getElementById('search-monitor').value.toLowerCase();
+            const filtered = monitorData.filter(d => d.nama.toLowerCase().includes(val));
+            renderMonitorTable(filtered);
+        };
+
+        function getStatusClass(s) {
+            if(s === 'Hadir') return 'bg-emerald-100 text-emerald-700';
+            if(s === 'Izin') return 'bg-amber-100 text-amber-700';
+            return 'bg-rose-100 text-rose-700';
         }
 
-        function showAuthMsg(msg, colorClass) {
-            const el = document.getElementById('auth-msg');
-            el.innerText = msg;
-            el.className = `mt-4 text-xs font-black uppercase tracking-widest ${colorClass}`;
-            el.classList.remove('hidden');
+        function getStatusBg(s) {
+            if(s === 'Hadir') return 'bg-emerald-500 text-white';
+            if(s === 'Izin') return 'bg-amber-500 text-white';
+            return 'bg-rose-500 text-white';
         }
 
-        function showToast(msg, bgClass) {
-            const toast = document.getElementById('toast');
-            toast.innerText = msg;
-            toast.className = `fixed bottom-8 left-1/2 -translate-x-1/2 px-8 py-4 rounded-2xl shadow-2xl text-white font-bold text-sm z-[100] ${bgClass}`;
-            toast.classList.remove('hidden');
-            setTimeout(() => toast.classList.add('hidden'), 3000);
+        window.handleLogout = () => { localStorage.clear(); location.reload(); };
+        
+        function showToast(msg, bg) {
+            const t = document.getElementById('toast');
+            if(!t) return;
+            t.innerText = msg;
+            t.className = `fixed bottom-10 left-1/2 -translate-x-1/2 px-8 py-4 rounded-2xl text-white font-black text-sm z-[600] shadow-2xl transition-all ${bg}`;
+            t.classList.remove('hidden');
+            setTimeout(() => t.classList.add('hidden'), 3000);
         }
     </script>
 </body>
